@@ -25,23 +25,23 @@ def show_main_menu(message):
     bot.send_message(message.chat.id, "Выбери, чем хочешь заняться:\n\nПосмотреть меню 'show notes'"
                                       "\nНайти заметки 'find note'\nСоздать заметку 'create note'"
                                       "\nУдалить заметку 'delete note'")
-@bot.message_handler(commands=['button'])
+# @bot.message_handler(commands=['button'])
 
 
-    if input_command == "find note":
-        finding_notes()
-
-    elif input_command == "create note":
-        creating_note()
-
-    elif input_command == "show notes":
-        titles()
-
-    elif input_command == "delete note":
-        deleting_note()
-
-    else:
-        show_main_menu()
+    # if input_command == "find note":
+    #     finding_notes()
+    #
+    # elif input_command == "create note":
+    #     creating_note()
+    #
+    # elif input_command == "show notes":
+    #     titles()
+    #
+    # elif input_command == "delete note":
+    #     deleting_note()
+    #
+    # else:
+    #     show_main_menu()
 
 
 def titles():
