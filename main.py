@@ -1,18 +1,18 @@
-# import telebot
-# from telebot import types
-# bot = telebot.TeleBot('5867712863:AAETiVY68RBg2-gzIXVoHrKujS1Yz8ceZfI')
+import telebot
+from telebot import types
+bot = telebot.TeleBot('5867712863:AAETiVY68RBg2-gzIXVoHrKujS1Yz8ceZfI')
 
-states = ['start', 'show note', 'choose item', 'displaying note', 'create note', 'enter item number',
-          'enter item name', 'enter note body', 'delete note']
+# states = ['start', 'show note', 'choose item', 'displaying note', 'create note', 'enter item number',
+#           'enter item name', 'enter note body', 'delete note']
 
-db = [{'Номер': '1.0', 'Название': 'denis', 'Тело заметки': 'dobrynin'},
-      {'Номер': '2.0', 'Название': 'aza', 'Тело заметки': 'kara'}]
+db = [{'Номер': '1', 'Название': 'denis', 'Тело заметки': 'dobrynin'},
+      {'Номер': '2', 'Название': 'aza', 'Тело заметки': 'kara'}]
 temp_db = []
 
-current_state = states[0]
-new_note_point = 0
-new_note_name = None
-new_note_body = None
+# current_state = states[0]
+# new_note_point = 0
+# new_note_name = None
+# new_note_body = None
 
 
 def main():
@@ -20,25 +20,28 @@ def main():
         show_main_menu()
 
 
-def show_main_menu():
-    print("Выбери, чем хочешь заняться:\n\nПосмотреть меню 'show notes'\nНайти заметки 'find note'\n"
-          "Создать заметку 'create note'\nУдалить заметку 'delete note'")
-    input_command = input()
+@bot.message_handler(commands=['start'])
+def show_main_menu(message):
+    bot.send_message(message.chat.id, "Выбери, чем хочешь заняться:\n\nПосмотреть меню 'show notes'"
+                                      "\nНайти заметки 'find note'\nСоздать заметку 'create note'"
+                                      "\nУдалить заметку 'delete note'")
+@bot.message_handler(commands=['button'])
+
 
     if input_command == "find note":
         finding_notes()
 
-    if input_command == "create note":
+    elif input_command == "create note":
         creating_note()
 
-    if input_command == "delete note":
-        deleting_note()
-
-    if input_command == "show notes":
+    elif input_command == "show notes":
         titles()
 
-    if input_command == "delete note":
+    elif input_command == "delete note":
         deleting_note()
+
+    else:
+        show_main_menu()
 
 
 def titles():
@@ -48,11 +51,14 @@ def titles():
     else:
         for d in db:
             print(f"{d['Номер']} {d['Название']}")
-
+    print(db)
     print("\nДля выхода в главное меню напишите start")
     user_command = input()
 
     if user_command == "start":
+        show_main_menu()
+    else:
+        print("Некорректный ввод")
         show_main_menu()
 
 
@@ -63,7 +69,7 @@ def finding_notes():
 
         if dicts['Номер'] == user_input or dicts["Название"] == user_input:
             print("По вашему запросу найдена заметка.\nЧтобы продолжить поиск введите search\n"
-                  "Чтобы перейти к найденой заметке нажмите go\nЧтобы вернуться в главное меню нажмите"
+                  "Чтобы перейти к найденой заметке нажмите go\nЧтобы вернуться в главное меню нажмите "
                   "start")
             user_command = input()
 
@@ -102,42 +108,87 @@ def finding_other_note_or_start():
 def creating_note():
     dct = dict()
 
-    num = input_note_number()
+    number = input_note_number()
+    num = check_on_integer(number)
+
+    if check_for_matches(str(num)) is True:
+        print("Такой номер уже существуют, введите другой, "
+              "либо удалите существующую заметку")
+        creating_note()
+    else:
+        print("Номер сохранен")
+
     title = input_note_title()
     body = input_note_body()
-    dct["Номер"] = str(num)
+    dct["Номер"] = num
     dct["Название"] = title
     dct["Тело заметки"] = body
 
     db.append(dct)
     print("Заметка добавлена\n")
-    # print(db)
     show_main_menu()
 
 
+def check_for_matches(arg):
+    flag = False
+    for d in db:
+        if arg in d.values():
+            flag = True
+
+    return flag
+
+
+def check_on_integer(number):
+    lst = list(str(number))
+    ind = lst.index('.')
+    mark = True
+
+    for i in lst[ind + 1:]:
+        if i != '0':
+            mark = False
+            break
+
+    if mark is True:
+        return int(number)
+    else:
+        return number
+
+
 def input_note_number():
-    print("Введи номер пункта")
-    num = float(input())
+    print("Введи номер пункта\nЧтобы вернуться в главное меню, напиши start\n")
+    num = input()
 
     if num == "start":
         show_main_menu()
     else:
-        print("Номер сохранен")
-        return num
+        try:
+            float(num)
+        except ValueError:
+            print("Некорректно набран номер")
+            input_note_number()
+
+    return float(num)
 
 
 def input_note_title():
     print("Введи название заметки\nЧтобы вернуться в главное меню, напиши start\n"
           "Чтобы заново ввести номер пункта меню напиши note number")
     title = input()
+
     if title == "start":
         show_main_menu()
     elif title == "note number":
         input_note_number()
         input_note_title()
     else:
-        print("Название сохранено")
-        return title
+        flag = check_for_matches(title)
+
+        if flag is True:
+            print("Такое название уже существует, напишите другое название, или удалите существующее")
+            creating_note()
+        else:
+            print("Название сохранено")
+            return title
 
 
 def input_note_body():
@@ -167,13 +218,14 @@ def deleting_note():
     else:
         print('Заметки не найдено\n')
 
-    if marker == True:
+    if marker is True:
         deleting_empty_dict()
         print('Заметка удалена\n')
 
     print("Чтобы удалить другую заметку напишите delete\n"
           "Чтобы выйти в главное меню нажмите start")
     user_command = input()
+
     if user_command == "delete":
         deleting_note()
     if user_command == "start":
@@ -182,6 +234,7 @@ def deleting_note():
 
 def deleting_empty_dict():
     for dct in db:
+
         if len(dct) == 0:
             continue
         else:
@@ -194,55 +247,8 @@ def save_db():
     db = temp_db
 
 
+bot.infinity_polling()
 main()
-
-# for index, d in enumerate(db):
-#     if index == 0:
-#         d.clear()
-#     else:
-#         continue
-# print(db)
-
-
-# a = 1
-#
-# if a == int:
-#     print(int(a))
-# else:
-#     print(a)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
